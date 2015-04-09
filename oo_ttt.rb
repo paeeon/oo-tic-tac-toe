@@ -1,14 +1,13 @@
 class Player
-  attr_accessor :spot_selection
 end
 
 class Human < Player
   def choose_a_spot
     begin
       puts "Pick a square from 1-9."
-      self.spot_selection = gets.chomp
-    end until %w(1 2 3 4 5 6 7 8 9).include?(spot_selection.to_s) # is this silly? haha
-    @board.grid_spots[spot_selection] = 'X'
+      spot_selection = gets.chomp
+    end until %w(1 2 3 4 5 6 7 8 9).include?(spot_selection)
+    board.grid_spots[spot_selection.to_i] = 'X'
   end
 end
 
