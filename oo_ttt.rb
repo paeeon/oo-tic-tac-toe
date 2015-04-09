@@ -7,7 +7,7 @@ class Human < Player
       puts "Pick a square from 1-9."
       spot_selection = gets.chomp
     end until %w(1 2 3 4 5 6 7 8 9).include?(spot_selection)
-    board.grid_spots[spot_selection.to_i] = 'X'
+    spot_selection.to_i
   end
 end
 
@@ -57,7 +57,8 @@ class Game
   def play
     board.draw_board
     puts "Welcome to Tic-Tac-Toe!"
-    human.choose_a_spot
+    board.grid_spots[(human.choose_a_spot).to_i] = 'X'
+    board.draw_board
     #computer.choose_a_spot
   end
 
