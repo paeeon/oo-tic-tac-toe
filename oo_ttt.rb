@@ -15,7 +15,7 @@ class Human < Player
       self.spot_selection = gets.chomp
     end until %w(1 2 3 4 5 6 7 8 9).include?(self.spot_selection)
     until board.remaining_empty_spots.map{|number| number.to_s}.include?(spot_selection)
-      binding.pry
+      #binding.pry
       puts "That spot's already taken! Pick another square."
       self.spot_selection = gets.chomp
     end 
@@ -26,8 +26,28 @@ class Human < Player
 end
 
 class Computer < Player
+  attr_accessor :position_to_choose
+
+  def two_in_a_row(board)
+    Board::WINNING_LINES.each do |line|
+      num_x_in_each_line = line.select {|num| board.grid_spots[num] == 'X'}
+      if num_x_in_each_line.length == 2
+        third_in_the_row = (line - num_x_in_each_line).first
+        if (board.remaining_empty_spots.include?(third_in_the_row))
+          self.position_to_choose = third_in_the_row
+          break
+        end
+      end
+    end
+  end
+
   def choose_a_spot(board)
-    self.spot_selection = board.remaining_empty_spots.sample.to_i
+    self.two_in_a_row(board)
+    if position_to_choose
+      self.spot_selection = position_to_choose
+    else
+      self.spot_selection = board.remaining_empty_spots.sample.to_i
+    end
     board.grid_spots[self.spot_selection] = 'O'
     board.remaining_empty_spots.delete(self.spot_selection)
   end
@@ -45,6 +65,10 @@ class Board
       grid_spots[i] = " "
       remaining_empty_spots << i
     end
+  end
+
+  def full_board?
+    self.remaining_empty_spots.empty?
   end
 
   def draw_board
@@ -76,16 +100,23 @@ class Game
   def check_for_winner
     Board::WINNING_LINES.each do |line|
       if line.select {|num| board.grid_spots[num] == 'X'}.length == 3
-        binding.pry
-        winner = "you"
+        self.winner = "you"
+        break
       elsif line.select {|num| board.grid_spots[num] == 'O'}.length == 3
-        winner = "computer"
+        self.winner = "computer"
+        break
       end
     end
   end
 
   def declare_winner
-    puts "The winner is #{winner}!"
+    if self.winner == "you"
+      puts "Yay, you win!"
+    elsif self.winner == "computer"
+      puts "Aww, computer wins :("
+    else
+      puts "It's a tie!"
+    end
   end
 
   def play
@@ -95,15 +126,18 @@ class Game
       human.choose_a_spot(board)
       computer.choose_a_spot(board)
       human.fill_spot(board, human, 'X')
-      self.check_for_winner
-      break if winner
-      #binding.pry
-      computer.fill_spot(board, computer, 'O')
-      self.check_for_winner
-      break if winner
       board.draw_board
-    end until winner != nil
+      self.check_for_winner
+      break if winner
+      computer.fill_spot(board, computer, 'O')
+      board.draw_board
+      self.check_for_winner
+      break if winner
+    end until board.full_board?
     self.declare_winner
+    puts "Want to play again? Y/N"
+    play_again = gets.chomp.downcase
+    Game.new.play if play_again == 'y'
   end
 
 end
